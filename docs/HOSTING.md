@@ -48,3 +48,9 @@ Sign-in needs two OAuth clients. Their ids and secrets go in the environment, ne
   Environment: `BATTLENET_CLIENT_ID`, `BATTLENET_CLIENT_SECRET`, `BATTLENET_REGION` (default `us`).
 
 For local development the redirect URLs are the same paths on the local host name in [DEV.md](../DEV.md).
+
+## The static website
+
+The landing page and the demo character page move into this app unchanged. The static site (Medalink/scarlet-web on
+GitHub Pages) keeps serving until this app has a public home. Retiring it is part of the same decision: once the app
+is live, replace the static pages with a redirect to the new address and archive that repo.
