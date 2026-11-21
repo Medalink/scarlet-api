@@ -74,7 +74,8 @@ Rules:
 
 Lines in many groups name another player (`LT`, `DP`, `PK`, `TR`, `ML`, `QA` and others; the field list is in
 [player-fields.tsv](player-fields.tsv)). The app replaces each such name with a pseudonym before hashing:
-`~` followed by 10 base32 characters of `HMAC-SHA256(install name key, lower-case name)`. The name key is a second
+`~` followed by 10 base32 characters (RFC 4648 lower-case alphabet `a-z2-7`, the first 50 bits) of
+`HMAC-SHA256(install name key, lower-case name)`. The character's own name is left as it is. The name key is a second
 secret of the install and is never sent. The same player gets the same pseudonym in every part from that install, so
 "who got which drop" still works without the name. Guild names of other players are treated the same way.
 
@@ -93,8 +94,18 @@ scarlet-part\t1\t<Name-Surname>\t<session start, epoch s>\t<group key>
 - UTF-8, `\n` line ends, fields as in FORMAT.md. `dt` is milliseconds since the previous line of this part, counted
   from the session start for the first line. Lines of one part keep their recorded order.
 - The addon stream's part uses group `addons` and lines `<dt>\t<key>\t<code>\t<fields>`.
-- A session with no line in a group has no part for it.
+- A session with no line in a group has no part for it. A `social` part that has only `pn` lines exists.
 - The part's id is the SHA-256 of this text, 32 bytes, written as lower-case hex.
+- How lines become sessions: all payload lines of a character are put in time order (a stable sort, ties keep the
+  recorded order). A session runs from an `S` line to its `ES`, or to the line before the next `S`. Lines between an
+  `ES` and the next `S` are that login's own first lines (durability, pet, client checks) and join the next session;
+  lines after the last `ES` join the last session; lines before any `S` form a session keyed by the first line's time.
+  The key is the `S` time in epoch seconds, raised by one second until it is unique for the character. `dt` can be
+  negative when a recorded line is earlier than the one before it.
+- A line whose code is in no group is never sent. The `names` group needs no switch: a name line (`name-refs.tsv`,
+  rows with shape `def`) goes into the session's `names` part when a line of a group that is on references its id
+  (rows of every other shape say which field holds which kind of id). `pn` lines come first in a `social` part, `dt` 0.
+- Parts are listed in order of session, then group (the order of `groups.tsv`). Nothing depends on hash order.
 - A session still open when the app exports is not uploaded until a later session of that character exists or its
   `ES` line is present. A part therefore never changes. If a recovered chunk later adds lines to an old session, its
   parts get new ids and replace the old ones in the next sync.
