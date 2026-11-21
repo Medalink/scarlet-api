@@ -314,3 +314,10 @@ Laravel code follows the IRIS house rules (`AGENTS.md`): controllers authorize, 
 one Action; Eloquent first; bounded jobs; short database-only transactions; UTC. No tests of any kind. Checks are
 Pint, Larastan with the house rules, and the real app. PHP 8.5. Every dependency is the newest release that is at
 least 7 days old.
+
+Local development runs in wslc containers only ([DEV.md](../DEV.md)): the app, Horizon, PostgreSQL with TimescaleDB
+and Redis, with a private database per worktree. Changes land through the owner's continuous flow with `ship`; there
+are no pull requests and no CI. The license is GPL-3.0-only, as for the rest of Scarlet.
+
+The landing page says what is true once uploading exists: Scarlet keeps the recording on the player's PC, and
+uploading is optional and off until the player turns it on.
