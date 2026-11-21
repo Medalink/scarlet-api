@@ -11,6 +11,9 @@ pub const MAX_PARTS: usize = 20_000;
 pub const WINDOW_LOG: u32 = 23;
 pub const LEVEL: i32 = 19;
 
+/// A request body and the indexes of the parts it holds.
+pub type Request = (Vec<u8>, Vec<usize>);
+
 pub struct WirePart {
     pub id: [u8; 32],
     pub text: String,
@@ -106,7 +109,7 @@ pub fn decode_batch(
 /// Group parts into requests that fit the limits: at most 20000 parts, 64 MiB
 /// decompressed and 4 MiB compressed each. Returns the request bodies and the
 /// part indexes each holds, in order.
-pub fn split_requests(parts: &[&str]) -> Result<Vec<(Vec<u8>, Vec<usize>)>, String> {
+pub fn split_requests(parts: &[&str]) -> Result<Vec<Request>, String> {
     let mut out = Vec::new();
     let mut start = 0;
     while start < parts.len() {
@@ -127,12 +130,7 @@ pub fn split_requests(parts: &[&str]) -> Result<Vec<(Vec<u8>, Vec<usize>)>, Stri
     Ok(out)
 }
 
-fn fit(
-    parts: &[&str],
-    a: usize,
-    b: usize,
-    out: &mut Vec<(Vec<u8>, Vec<usize>)>,
-) -> Result<(), String> {
+fn fit(parts: &[&str], a: usize, b: usize, out: &mut Vec<Request>) -> Result<(), String> {
     let body = encode_batch(&parts[a..b])?;
     if body.len() <= MAX_COMPRESSED {
         out.push((body, (a..b).collect()));
